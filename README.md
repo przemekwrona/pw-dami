@@ -1,2 +1,2 @@
-# pw-dami
+# wut-dami
 Implementation of DAMI project

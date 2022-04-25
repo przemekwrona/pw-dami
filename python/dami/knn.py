@@ -8,11 +8,14 @@ def init_random_centroids(data, number_of_class):
 
     dimension = len(data[0])
 
-    centroid = []
+    centroid = None
 
     for i in range(number_of_class):
-        init_centroid = np.random.randint(low=min_value[i], high=max_value[i], size=dimension)
-        centroid.append(init_centroid)
+        init_centroid = np.array([np.random.randint(low=min_value[i], high=max_value[i], size=dimension)])
+        if centroid is None:
+            centroid = init_centroid
+        else:
+            centroid = np.concatenate((centroid, init_centroid), axis=0)
 
     return centroid
 
@@ -48,11 +51,13 @@ def calculate_max_error(centroids_1, centroids_2):
 def knn(data, number_of_class: int, epsilon=0.005):
     centroids = [init_random_centroids(data, number_of_class)]
 
-    print("Init centroids")
+    print("Init Random Centroids\n")
     print(np.array(centroids[0]).tolist())
 
+    iteration = 0
     while True:
 
+        print("Iteration {}".format(iteration))
         grouped_data = []
         for i in range(number_of_class):
             grouped_data.append([])
@@ -78,7 +83,11 @@ def knn(data, number_of_class: int, epsilon=0.005):
         error = calculate_max_error(centroids[len(centroids) - 2], centroids[len(centroids) - 1])
 
         print(np.array(centroids[len(centroids) - 1]).tolist())
-        print(error)
+        print("Error classification: {:.2f}\n".format(error))
+
+        iteration = iteration + 1
 
         if error <= epsilon:
             break
+
+    return grouped_data

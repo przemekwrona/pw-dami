@@ -1,13 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+labels = ['men', 'women']
+
 
 def scatter_clazz(data):
-    for clazz in data:
+    for index, clazz in enumerate(data):
         vectors_in_class = np.asarray(clazz)
         x = vectors_in_class[:, 0]
         y = vectors_in_class[:, 1]
-        plt.scatter(x, y)
+        plt.scatter(x, y, label=labels[index])
 
 
 def draw_classified_2d_data(data):
@@ -29,5 +31,6 @@ def draw_classified_2d_data_with_test(data, point, r=5):
 
     plt.xlabel("Height")
     plt.ylabel("Weight")
+    plt.legend()
     plt.grid()
     plt.show()

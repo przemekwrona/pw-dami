@@ -1,4 +1,5 @@
 import numpy
+import math
 import numpy as np
 
 
@@ -91,3 +92,16 @@ def knn(data, number_of_class: int, epsilon=0.005):
             break
 
     return grouped_data
+
+
+def count_elements_by_class_and_distance_less_than(point, data_in_class, distance):
+    number_of_vectors = 0
+
+    for row in data_in_class:
+        calculated_distance = 0
+        for i in range(len(point)):
+            calculated_distance = calculated_distance + math.pow(row[i] - point[i], 2)
+
+        if math.sqrt(calculated_distance) <= distance:
+            number_of_vectors = number_of_vectors + 1
+    return number_of_vectors

@@ -1,38 +1,26 @@
-import math
-
-from dami.files import loader
 from dami import knn
 from dami.plots import plot
 from dami.sources import data
 
-
-def aaa(point, data_in_class, distance):
-    number_of_vectors = 0
-
-    for row in data_in_class:
-        calculated_distance = 0
-        for i in range(len(point)):
-            calculated_distance = calculated_distance + math.pow(row[i] - point[i], 2)
-
-        if math.sqrt(calculated_distance) <= distance:
-            number_of_vectors = number_of_vectors + 1
-    return number_of_vectors
-
-
 if __name__ == '__main__':
-    # print("Init project")
-    # loader.load_txt()
+    number_of_class = 2
 
-    grouped_data = knn.knn(data.data, 2)
+    grouped_data = knn.knn(data.data, number_of_class)
 
     # plot.draw_classified_2d_data(grouped_data)
 
-    plot.draw_classified_2d_data_with_test(grouped_data, 170, 60, 12)
+    R = 12
+    point = [170, 60]
+    plot.draw_classified_2d_data_with_test(grouped_data, point, R)
 
-    print("Number of elements in class 1: {}".format(len(grouped_data[0])))
-    print("Number of elements in class 2: {} \n".format(len(grouped_data[1])))
+    for clazz in range(number_of_class):
+        print("Number of elements in class {}: {} - {:.2f}%".format(
+            clazz, len(grouped_data[clazz]), len(grouped_data[clazz]) / len(data.data) * 100))
 
-    print("Number of elements in circle in class 1: {}".format(aaa([170, 60], grouped_data[0], 12)))
-    print("Number of elements in circle in class 2: {} \n".format(aaa([170, 60], grouped_data[1], 12)))
+    total_number_of_elements_in_range = data.count_elements_by_distance_less_than(point, data.data, R)
+    for clazz in range(number_of_class):
+        number_of_elements_in_clazz = knn.count_elements_by_class_and_distance_less_than(point, grouped_data[clazz], R)
+        print("Number of elements in circle in class {}: {} - {:.2f}%".format(
+            clazz, number_of_elements_in_clazz, number_of_elements_in_clazz / total_number_of_elements_in_range * 100))
 
-    print("end of algorithm")
+    print("\nend of algorithm")

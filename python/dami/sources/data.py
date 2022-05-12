@@ -1,5 +1,9 @@
 import numpy as np
 import math
+import csv
+
+minimum_values = []
+maximum_values = []
 
 data = np.array([
     [159, 45],
@@ -24,6 +28,20 @@ data = np.array([
 ])
 
 
+def load_heart():
+    data = []
+
+    with open('./resources/heart.dat', newline='') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+        for row in spamreader:
+            data.append(row)
+
+    return data
+
+
+load_heart()
+
+
 def count_elements_by_distance_less_than(point, grouped_data, distance):
     number_of_vectors = 0
 
@@ -35,3 +53,25 @@ def count_elements_by_distance_less_than(point, grouped_data, distance):
         if math.sqrt(calculated_distance) <= distance:
             number_of_vectors = number_of_vectors + 1
     return number_of_vectors
+
+
+def find_minimum_and_maximum_values():
+    global minimum_values, maximum_values
+    for row in data:
+        if len(minimum_values) == 0:
+            minimum_values = row.copy()
+
+        if len(maximum_values) == 0:
+            maximum_values = row.copy()
+
+        for index, column in enumerate(row):
+            if column > maximum_values[index]:
+                maximum_values[index] = column
+            if column < minimum_values[index]:
+                minimum_values[index] = column
+
+    print("Minimum values {}".format(minimum_values))
+    print("Maximum values {}".format(maximum_values))
+
+
+find_minimum_and_maximum_values()

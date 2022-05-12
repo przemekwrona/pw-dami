@@ -1,6 +1,6 @@
 # DAMI
 
-Implementation of DAMI project in python
+Implementation of DAMI project in python NG-RIONA classifier
 
 ## Installation
 
@@ -17,6 +17,11 @@ conda env update --file environment.yml --prune
 ```
 
 ## Run
+
+Set Anaconda environment
+```shell
+conda activate wut-dami
+```
 
 Run project with python 2.7
 

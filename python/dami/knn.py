@@ -7,7 +7,7 @@ def init_random_centroids(data, number_of_class):
     max_value = np.amax(data, axis=0)
     min_value = np.amin(data, axis=0)
 
-    dimension = len(data[0])
+    dimension = len(data.columns) - 1
 
     centroid = None
 
@@ -22,13 +22,13 @@ def init_random_centroids(data, number_of_class):
 
 
 def distance_to_centroid(centroid, vector):
-    subtract = np.subtract(centroid, vector)
+    subtract = np.subtract(centroid, np.array(vector)[:-1])
     power = np.power(subtract, 2)
-    return np.sqrt(np.sum(np.power(np.subtract(centroid, vector), 2)))
+    return np.sqrt(np.sum(power))
 
 
 def calculate_centroid(data):
-    return np.sum(data, axis=0) / len(data)
+    return np.sum(data, axis=0)[:-1] / len(data)
 
 
 def calculate_centroids(grouped_data):
@@ -63,7 +63,7 @@ def knn(data, number_of_class: int, epsilon=0.005):
         for i in range(number_of_class):
             grouped_data.append([])
 
-        for vector in data:
+        for index, vector in data.iterrows():
 
             minimal_distance = float('inf')
             assigned_class = None

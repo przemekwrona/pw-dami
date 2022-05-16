@@ -11,3 +11,12 @@ def distance(v1, v2):
         s += abs(a / d)
 
     return s
+
+
+def distance_to_k_element(point, vectors, k=1):
+    riona_distances = []
+    for index, vector in enumerate(vectors):
+        riona_distances.append(distance(point, vector))
+    riona_distances.sort()
+
+    return riona_distances[k - 1]

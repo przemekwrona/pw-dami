@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from python.dami import riona
+from python.dami.sources import data as ff
 
 labels = ['men', 'women']
 
@@ -41,26 +42,27 @@ def draw_classified_2d_data_with_test(data, point, r=5):
     plt.show()
 
 
-def draw_classified_2d_data_with_metric(data, point, r=None, k=None):
+def draw_classified_2d_data_with_metric(grouped_data, point, minimum_values, maximum_values, r=None, k=None):
     if r is not None:
 
-        for index, clazz in enumerate(data):
+        for index, clazz in enumerate(grouped_data):
             x = np.array(clazz)[:, 0]
             y = np.array(clazz)[:, 1]
             plt.scatter(x, y, color='#D8D8D8')
 
-            data[index] = list(filter(lambda v: riona.distance(point, v) <= r, clazz))
+            grouped_data[index] = list(
+                filter(lambda v: riona.distance(point, v, minimum_values, maximum_values) <= r, clazz))
 
-    scatter_clazz(data)
+    scatter_clazz(grouped_data)
 
     x_c, y_c = point
     plt.scatter(x_c, y_c, color='grey')
 
-    for index, clazz in enumerate(data):
+    for index, clazz in enumerate(grouped_data):
         for vector in np.asarray(clazz):
-            if r is None or riona.distance(point, vector) <= r:
-                x, y = vector
-                plt.text(x + .5, y + .5, "{:.2f}".format(riona.distance(point, vector)))
+            if r is None or riona.distance(point, vector, minimum_values, maximum_values) <= r:
+                x, y, group = vector
+                plt.text(x + .5, y + .5, "{:.2f}".format(riona.distance(point, vector, minimum_values, maximum_values)))
 
     if k is not None:
         plt.title("Assigned sex in the function of height and weight\n Adding new point with k = {}".format(k))
@@ -72,3 +74,7 @@ def draw_classified_2d_data_with_metric(data, point, r=None, k=None):
     plt.legend()
     plt.grid()
     plt.show()
+
+
+def flatten(t):
+    return [item for sublist in t for item in sublist]

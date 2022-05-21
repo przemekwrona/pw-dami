@@ -42,7 +42,8 @@ def draw_classified_2d_data_with_test(data, point, r=5):
     plt.show()
 
 
-def draw_classified_2d_data_with_metric(grouped_data, point, minimum_values, maximum_values, r=None, k=None):
+def draw_classified_2d_data_with_metric(grouped_data, point, minimum_values, maximum_values, types=None, r=None,
+                                        k=None):
     if r is not None:
 
         for index, clazz in enumerate(grouped_data):
@@ -51,7 +52,7 @@ def draw_classified_2d_data_with_metric(grouped_data, point, minimum_values, max
             plt.scatter(x, y, color='#D8D8D8')
 
             grouped_data[index] = list(
-                filter(lambda v: riona.distance(point, v, minimum_values, maximum_values) <= r, clazz))
+                filter(lambda v: riona.distance(point, v, types, minimum_values, maximum_values) <= r, clazz))
 
     scatter_clazz(grouped_data)
 
@@ -59,10 +60,11 @@ def draw_classified_2d_data_with_metric(grouped_data, point, minimum_values, max
     plt.scatter(x_c, y_c, color='grey')
 
     for index, clazz in enumerate(grouped_data):
-        for vector in np.asarray(clazz):
-            if r is None or riona.distance(point, vector, minimum_values, maximum_values) <= r:
+        for vector in clazz:
+            if r is None or riona.distance(point, vector, types, minimum_values, maximum_values) <= r:
                 x, y, group = vector
-                plt.text(x + .5, y + .5, "{:.2f}".format(riona.distance(point, vector, minimum_values, maximum_values)))
+                plt.text(x + .5, y + .5,
+                         "{:.2f}".format(riona.distance(point, vector[:-1], types, minimum_values, maximum_values)))
 
     if k is not None:
         plt.title("Assigned sex in the function of height and weight\n Adding new point with k = {}".format(k))

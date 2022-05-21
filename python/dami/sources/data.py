@@ -1,8 +1,14 @@
 import math
 import pandas
+from python.dami import riona
 
 
 def load_gender():
+    # Attribute Information:
+    # ------------------------
+    # -- 1. height
+    # -- 2. weight
+    # -- 3. sex
     headers = ['height', 'weight', 'gender']
     dtypes = {'height': 'float', 'weight': 'float', 'gender': 'int'}
 
@@ -45,9 +51,7 @@ def load_heart():
               'thal': 'int',
               'presence of heart disease': 'int'}
 
-    f = pandas.read_csv('./resources/heart.dat', delimiter=' ', names=headers, dtype=dtypes)
-
-    return f
+    return pandas.read_csv('./resources/heart.dat', delimiter=' ', names=headers, dtype=dtypes)
 
 
 def count_elements_by_distance_less_than(point, grouped_data, distance):
@@ -67,7 +71,15 @@ def find_minimum_and_maximum_values(data):
     minimum_values = data.min()
     maximum_values = data.max()
 
-    print("Minimum values {}\n".format(minimum_values))
-    print("Maximum values {}".format(maximum_values))
+    # print("Minimum values {}\n".format(minimum_values))
+    # print("Maximum values {}".format(maximum_values))
 
     return minimum_values, maximum_values
+
+
+def find_elements_by_distance_less_than(data, point, distance_to_k_element, minimum_values, maximum_values):
+    closest_object = pandas.DataFrame()
+    for index, row in data.iterrows():
+        if riona.distance(point[:-1], row, data.dtypes, minimum_values, maximum_values) <= distance_to_k_element:
+            closest_object = closest_object.append(row)
+    return closest_object

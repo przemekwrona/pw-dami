@@ -1,4 +1,5 @@
 import numpy
+import pandas
 
 from python.dami.sources import data
 
@@ -28,11 +29,19 @@ def distance_to_k_element(point, vectors, k=1):
     riona_distances = []
     minimum_values, maximum_values = data.find_minimum_and_maximum_values(vectors)
 
-    # for index in range(0, len(vectors) + 1):
-    #     riona_distances.append(distance(point, vectors[:-1], minimum_values, maximum_values))
-
     for index, vector in vectors.iterrows():
-        riona_distances.append(distance(point, vector, vectors.dtypes, minimum_values, maximum_values))
+        riona_distances.append(distance(point[:-1], vector, vectors.dtypes, minimum_values, maximum_values))
     riona_distances.sort()
 
     return riona_distances[k - 1]
+
+
+def assign_class(subset, point):
+    rules = pandas.DataFrame()
+
+    for index, row in subset.iterrows():
+        rule = []
+        for name, column in row.items():
+            rule.append((column, 2))
+            # print(index)
+    # print()

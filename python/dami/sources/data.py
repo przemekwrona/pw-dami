@@ -1,30 +1,5 @@
-import numpy as np
 import math
-import csv
 import pandas
-
-
-# gender_data = pandas.DataFrame(np.array([
-#     [159, 45],
-#     [172, 61],
-#     [180, 65],
-#     [151, 64],
-#     [145, 55],
-#     [150, 74],
-#     [150, 50],
-#     [160, 55],
-#     [183, 80],
-#     [200, 99],
-#     [140, 45],
-#     [170, 71],
-#     [150, 50],
-#     [186, 74],
-#     [183, 84],
-#     [150, 50],
-#     [178, 77],
-#     [154, 62],
-#     [159, 60]
-# ]), columns=['height', 'weight'])
 
 
 def load_gender():
@@ -35,18 +10,42 @@ def load_gender():
 
 
 def load_heart():
-    headers = ['col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8', 'col9', 'col10', 'col11', 'col12',
-               'col13', 'col14']
-    dtypes = {'col1': 'float', 'col2': 'float', 'col3': 'float', 'col4': 'float', 'col5': 'float', 'col6': 'float',
-              'col7': 'float', 'col8': 'float', 'col9': 'float', 'col10': 'float', 'col11': 'float', 'col12': 'float',
-              'col13': 'float', 'col14': 'float'}
+    # Attribute Information:
+    # ------------------------
+    # -- 1. age
+    # -- 2. sex
+    # -- 3. chest pain type (4 values)
+    # -- 4. resting blood pressure
+    # -- 5. serum cholesterol in mg/dl
+    # -- 6. fasting blood sugar > 120 mg/dl
+    # -- 7. resting electrocardiographic results (values 0,1,2)
+    # -- 8. maximum heart rate achieved
+    # -- 9. exercise induced angina
+    # -- 10. oldpeak = ST depression induced by exercise relative to rest
+    # -- 11. the slope of the peak exercise ST segment
+    # -- 12. number of major vessels (0-3) colored by flourosopy
+    # -- 13. thal: 3 = normal; 6 = fixed defect; 7 = reversable defect
+
+    headers = ['age', 'sex', 'chest pain type', 'resting blood pressure', 'serum cholesterol', 'fasting blood sugar',
+               'resting electrocardiographic results', 'maximum heart rate achieved', 'exercise induced angina',
+               'oldpeak', 'the slope of the peak exercise ST segment', 'number of major vessels', 'thal',
+               'presence of heart disease']
+    dtypes = {'age': 'float',
+              'sex': 'int',
+              'chest pain type': 'int',
+              'resting blood pressure': 'float',
+              'serum cholesterol': 'float',
+              'fasting blood sugar': 'int',  # boolean
+              'resting electrocardiographic results': 'int',
+              'maximum heart rate achieved': 'float',
+              'exercise induced angina': 'int',
+              'oldpeak': 'float',
+              'the slope of the peak exercise ST segment': 'float',
+              'number of major vessels': 'float',
+              'thal': 'int',
+              'presence of heart disease': 'int'}
 
     f = pandas.read_csv('./resources/heart.dat', delimiter=' ', names=headers, dtype=dtypes)
-
-    # with open('./resources/heart.dat', newline='') as csvfile:
-    #     spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-    #     for row in spamreader:
-    #         data.append(row)
 
     return f
 
@@ -68,7 +67,7 @@ def find_minimum_and_maximum_values(data):
     minimum_values = data.min()
     maximum_values = data.max()
 
-    print("Minimum values {}".format(minimum_values))
+    print("Minimum values {}\n".format(minimum_values))
     print("Maximum values {}".format(maximum_values))
 
     return minimum_values, maximum_values

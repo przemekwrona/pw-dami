@@ -17,16 +17,15 @@ def run_experiment():
     R = 12
     point = [170, 60]
 
-    plot.draw_classified_2d_data(grouped_data)
-
     # plot.draw_classified_2d_data_with_test(grouped_data, point, R)
 
     distance_to_k_element = riona.distance_to_k_element(point, gender_data, k=5)
 
-    plot.draw_classified_2d_data_with_metric(grouped_data, point, minimum_values, maximum_values)
+    plot.draw_classified_2d_data_with_metric(grouped_data, point, minimum_values, maximum_values,
+                                             types=gender_data.dtypes)
 
     plot.draw_classified_2d_data_with_metric(grouped_data, point, minimum_values, maximum_values,
-                                             r=distance_to_k_element, k=5)
+                                             types=gender_data.dtypes, r=distance_to_k_element, k=5)
 
     for clazz in range(number_of_class):
         print("Number of elements in class {}: {} - {:.2f}%".format(

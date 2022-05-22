@@ -107,7 +107,7 @@ def draw_with_distance(data, class_name, point, minimum_values, maximum_values):
         for index, vector in elements.iterrows():
             x_l, y_l, label = vector
             plt.text(x_l + .5, y_l + .5,
-                     "{:.2f}".format(riona.distance(point[:-1], vector[:-1], data.dtypes, minimum_values,
+                     "{:.2f}".format(riona.distance(point[:-1], vector[:-1], data.dtypes, class_name, minimum_values,
                                                     maximum_values)))
 
     plt.title("Assigned sex in the function of height and weight\n Adding new point with k = ...")
@@ -128,22 +128,22 @@ def draw_closest_point(data, closest_objects, class_name, point, minimum_values,
         for index, vector in elements.iterrows():
             x_l, y_l, label = vector
             plt.text(x_l + .5, y_l + .5,
-                     "{:.2f}".format(riona.distance(point[:-1], vector[:-1], closest_objects.dtypes, minimum_values,
-                                                    maximum_values)))
+                     "{:.2f}".format(
+                         riona.distance(point, vector, closest_objects.dtypes, class_name, minimum_values,
+                                        maximum_values)))
 
     for clazz, elements in closest_objects.groupby(by=[class_name]):
         x = np.array(elements)[:, 0]
         y = np.array(elements)[:, 1]
-
-        print(int(clazz - 1))
 
         plt.scatter(x, y, label=labels[int(clazz - 1)])
 
         for index, vector in elements.iterrows():
             x_l, y_l, label = vector
             plt.text(x_l + .5, y_l + .5,
-                     "{:.2f}".format(riona.distance(point[:-1], vector[:-1], closest_objects.dtypes, minimum_values,
-                                                    maximum_values)))
+                     "{:.2f}".format(
+                         riona.distance(point, vector, closest_objects.dtypes, class_name, minimum_values,
+                                        maximum_values)))
 
     x_c, y_c, label = point
     plt.scatter(x_c, y_c, color='red')

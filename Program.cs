@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,7 +11,7 @@ namespace DAMI
     {
         static void Main(string[] args)
         {
-            int kNeighbours = 20;
+            
             List<HeartDataRecord> records = new List<HeartDataRecord>();
 
             NumberFormatInfo provider = new NumberFormatInfo();
@@ -24,10 +24,12 @@ namespace DAMI
             {
                 records.Add(new HeartDataRecord(line.Replace("\n", "").Replace("\r", ""), provider));
             }
+            int kNeighbours = (int)Math.Floor(Math.Sqrt(records.Count));
 
             HeartDataRecord source = records.Find(x => x.ID == 1);
 
-            List<HeartDataRecord> kPlusNN = (records.OrderBy(x => x.ComputeDistance(source)).ToList()).GetRange(0, kNeighbours);
+            List<double> kNearestDistances = records.Select(x => x.ComputeDistance(source)).Distinct().OrderBy(x => x).ToList().GetRange(0, kNeighbours + 1);
+            List<HeartDataRecord> kPlusNN = records.FindAll(x => kNearestDistances.Contains(x.ComputeDistance(source)));
             // techniczna rzecz (do usunięcia)
             kPlusNN.RemoveAll(x => x.ID == source.ID);
 
@@ -49,6 +51,9 @@ namespace DAMI
 
             Console.WriteLine("Assigned class: {0}", assignedClass);
             Console.WriteLine("Assigned class referential: {0}", assignedClassReferential);
+
+            int optK = HeartDataRecord.getOptimalValueOfK(records);
+            Console.WriteLine("Optimal K value: {0}", optK);
 
             return;
         }

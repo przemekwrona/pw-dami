@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -142,6 +142,83 @@ namespace DAMI
             return mins["age"];
         }
 
+        public static int getOptimalValueOfK(List<HeartDataRecord> collection)
+        {
+            int kNeighboursMax = (int)Math.Floor(Math.Sqrt(collection.Count));
+            double[] decisionValues = collection.Select(x => x.classAssigned).Distinct().ToArray();
+
+            // ---------------------------------------------------------------------------
+            //inicjalizacja tabeli decisionStrength 
+            Dictionary<double, int> decisionStrength = new Dictionary<double, int>();
+            foreach (double d in decisionValues)
+                decisionStrength.Add(d, 0);
+
+            // ---------------------------------------------------------------------------
+            //inicjalizacja tabeli A
+            Dictionary<HeartDataRecord, Dictionary<int, double>> A = new Dictionary<HeartDataRecord, Dictionary<int, double>>();
+            foreach (HeartDataRecord r in collection)
+            {
+                A.Add(r, new Dictionary<int, double>());
+                for(int kk = 1; kk <= kNeighboursMax; ++kk)
+                    A[r].Add(kk, 0);
+            }
+
+            // ---------------------------------------------------------------------------
+            //początkowe wyznaczenie currentDecision
+            double currentDecisionGlobal = double.MinValue;
+            int currentDesionGlobalFrequency = 0;
+            foreach (double v in decisionValues)
+            {
+                int freq = collection.FindAll(x => x.classAssigned == v).Count;
+                if (freq > currentDesionGlobalFrequency)
+                {
+                    currentDesionGlobalFrequency = freq;
+                    currentDecisionGlobal = v;
+                }
+            }
+            // ---------------------------------------------------------------------------
+
+            foreach (HeartDataRecord record in collection)
+            {
+                List<double> kNearestDistances = collection.Select(x => x.ComputeDistance(record)).Distinct().OrderBy(x => x).ToList().GetRange(0, kNeighboursMax + 1);
+                List<HeartDataRecord> kPlusNN = collection.FindAll(x => kNearestDistances.Contains(x.ComputeDistance(record)));
+                double currentDecision = currentDecisionGlobal;
+                // usunięcie z listy najbliższych sąsiadów tego samego przetwarzanego rekordu
+                kPlusNN.RemoveAll(x => x.ID == record.ID);
+
+                for (int k = 1; k <= kNeighboursMax; ++k)
+                {
+                    // chwyć k-ty element i zrób z niego regułę
+                    Rule rule = new Rule(record, kPlusNN.ElementAt(k - 1));
+                    if (rule.IsRuleSatisifiedAgainstCollection(kPlusNN))
+                    {
+                        double currentValue = kPlusNN.ElementAt(k - 1).classAssigned;
+                        decisionStrength[currentValue] += 1;
+                        if (decisionStrength[currentValue] > decisionStrength[currentDecision])
+                            currentDecision = currentValue;
+                    }
+                    A[record][k] = currentDecision;
+                }
+
+
+            }
+
+            // ---------------------------------------------------------------------------
+            //wyznaczenie kOpt
+            int kOpt = -1;
+            int setPower = -1;
+            for (int k = 1; k <= kNeighboursMax; ++k)
+            {
+                int currentSetPower = collection.FindAll(x => x.classAssigned == A[x][k]).Count;
+                if (currentSetPower > setPower)
+                {
+                    setPower = currentSetPower;
+                    kOpt = k;
+                }
+            }
+
+            return kOpt;
+        }
 
     }
 }

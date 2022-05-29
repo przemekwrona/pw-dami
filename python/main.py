@@ -8,11 +8,12 @@ if __name__ == '__main__':
     # gender.run_experiment()
 
     # gender_2.run_experiment(k=3)
+    # gender_2.run_experiment(k='max')
 
-    spambase.run_experiment(k=5)
+    # spambase.run_experiment(k=5)
 
     # heart.run_experiment(k=1)
-    # heart.run_experiment(k=2)
+    heart.run_experiment(k=5)
     # heart.run_experiment(k=5)
     # heart.run_experiment(k=10)
 

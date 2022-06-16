@@ -10,7 +10,7 @@ def load_gender():
     # -- 2. weight
     # -- 3. sex
     headers = ['height', 'weight', 'gender']
-    dtypes = {'height': 'float', 'weight': 'float', 'gender': 'int'}
+    dtypes = {'height': 'float', 'weight': 'int', 'gender': 'int'}
 
     return pandas.read_csv('./resources/gender.dat', delimiter=' ', names=headers, dtype=dtypes)
 

@@ -127,9 +127,10 @@ def find_k_optimal(test_data, learn_data, clazz_name, minimum_values, maximum_va
                                                                        minimum_values, maximum_values)
             closest_objects = closest_objects.astype(learn_data.dtypes)
 
-            k_nearest, promising_k_nearest, k_nearest_ids, k_promising_ids, standard_decision, global_decision = predict(closest_objects, test_instance,
-                                                                                         clazz_name,
-                                                                                         grouped_global_data)
+            k_nearest, promising_k_nearest, k_nearest_ids, k_promising_ids, standard_decision, global_decision = predict(
+                closest_objects, test_instance,
+                clazz_name,
+                grouped_global_data)
             results = results.append(pandas.DataFrame(
                 data={'true_value': [test_instance[clazz_name]], 'subset_prediction': [standard_decision],
                       'global_decision': [global_decision]}))

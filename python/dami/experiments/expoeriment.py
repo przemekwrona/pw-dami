@@ -20,6 +20,7 @@ def run_experiment(dataset, clazz_name, test_size=0.2, k=1, fold=3, dataset_name
     minimum_values, maximum_values = data.find_minimum_and_maximum_values(dataset)
     grouped_global_data = learn_data.groupby(by=[clazz_name]).agg(count=(clazz_name, 'count'))
 
+    k_value = k
     if k == 'max':
         k = math.ceil(math.sqrt(len(learn_data)))
         print("k max is equal: {}".format(k))
@@ -103,12 +104,13 @@ def run_experiment(dataset, clazz_name, test_size=0.2, k=1, fold=3, dataset_name
         print(confusion_matrix(results['true_value'], results['subset_prediction']))
         # pp_matrix_from_data(results['true_value'], results['subset_prediction'], cmap='PuRd', fz=24, figsize=[5, 5])
 
-        stat_filename_in_standard_mode = 'results/STAT_NG-RIONA_{dataset}_A{attributes}_R{rows}_k{k}_{mode}.txt'.format(
+        stat_filename_in_standard_mode = 'results/STAT_NG-RIONA_{dataset}_A{attributes}_R{rows}_k_{k}_{mode}.txt'.format(
             attributes=len(dataset.columns),
-            rows=len(learn_data), k=k, mode=mode.lower(),
+            rows=len(learn_data), k=k_value, mode=mode.lower(),
             dataset=dataset_name)
 
         with open(stat_filename_in_standard_mode, 'w', encoding='UTF8', newline='') as statistic_file:
+            log_k(statistic_file, k_value=k_value, k_real=k)
             statistic_file.write(
                 'Confusion matrix in standard  mode, k = {}, accuracy: {:.2f}%\n'.format(k, 100 * standard_accuracy))
             statistic_file.write('Program was running for {time} second.\n'.format(time=total_time.seconds))
@@ -123,12 +125,13 @@ def run_experiment(dataset, clazz_name, test_size=0.2, k=1, fold=3, dataset_name
         print(confusion_matrix(results['true_value'], results['global_decision']))
         # pp_matrix_from_data(results['true_value'], results['global_decision'], cmap='PuRd', fz=24, figsize=[5, 5])
 
-        stat_filename_in_normalized_mode = 'results/STAT_NG-RIONA_{dataset}_A{attributes}_R{rows}_k{k}_{mode}.txt'.format(
+        stat_filename_in_normalized_mode = 'results/STAT_NG-RIONA_{dataset}_A{attributes}_R{rows}_k_{k}_{mode}.txt'.format(
             attributes=len(dataset.columns),
-            rows=len(learn_data), k=k, mode=mode.lower(),
+            rows=len(learn_data), k=k_value, mode=mode.lower(),
             dataset=dataset_name)
 
         with open(stat_filename_in_normalized_mode, 'w', encoding='UTF8', newline='') as statistic_file:
+            log_k(statistic_file, k_value=k_value, k_real=k)
             statistic_file.write(
                 'Confusion matrix in normalized mode, k = {}, accuracy: {:.2f}%\n'.format(k, 100 * normalized_accuracy))
             statistic_file.write('Program was running for {time} second\n.'.format(time=total_time.seconds))
@@ -313,3 +316,10 @@ def run_experiment_with_fold(dataset, clazz_name, test_size=0.2, k=1, dataset_na
             statistic_file.write('Program was running for {time} second\n.'.format(time=total_time.seconds))
             statistic_file.write(
                 numpy.array2string(confusion_matrix(results['true_value'], results['global_decision'])))
+
+
+def log_k(file, k_value, k_real):
+    if k_value == 'max':
+        file.write('k maximal is equal {}\n'.format(k_real))
+    if k_value == 'optimal':
+        file.write('k optimal is equal {}\n'.format(k_real))

@@ -114,7 +114,8 @@ def run_experiment(dataset, clazz_name, test_size=0.2, k=1, fold=3, dataset_name
             statistic_file.write('Program was running for {time} second.\n'.format(time=total_time.seconds))
             confusion_matrix_results = confusion_matrix(results['true_value'], results['subset_prediction'])
             calculate_accuracy(confusion_matrix_results, statistic_file)
-            k_fold(dataset, statistic_file, fold=fold)
+            k_fold(dataset, statistic_file, fold=fold, clazz_name=clazz_name, k=k, minimum_values=minimum_values,
+                   maximum_values=maximum_values, grouped_global_data=grouped_global_data, mode=mode)
 
     if mode == 'NORM':
         normalized_accuracy = accuracy_score(results['true_value'], results['global_decision'])
@@ -134,20 +135,54 @@ def run_experiment(dataset, clazz_name, test_size=0.2, k=1, fold=3, dataset_name
             confusion_matrix_results = confusion_matrix(results['true_value'], results['subset_prediction'])
 
             calculate_accuracy(confusion_matrix_results, statistic_file)
-            k_fold(dataset, statistic_file, fold=fold)
+            k_fold(dataset, statistic_file, fold=fold, clazz_name=clazz_name, k=k, minimum_values=minimum_values,
+                   maximum_values=maximum_values, grouped_global_data=grouped_global_data, mode=mode)
 
 
-def k_fold(dataset, file, fold):
+def k_fold(dataset, file, fold, clazz_name, k, minimum_values, maximum_values, grouped_global_data, mode):
     kf = KFold(n_splits=fold, shuffle=True)
     kf.get_n_splits(dataset)
 
     iteration = 1
 
     for train_index, test_index in kf.split(dataset):
-        # file.write("\nKFold iteration: {}".format(iteration))
-        # print("TRAIN:", train_index, "\nTEST:", test_index)
-        # X_train, X_test = X[train_index], X[test_index]
-        # y_train, y_test = y[train_index], y[test_index]
+        file.write("\nKFold iteration: {}\n".format(iteration))
+        learn_data = dataset.iloc[train_index]
+        test_data = dataset.iloc[test_index]
+
+        results = pandas.DataFrame()
+
+        for index, test_instance in test_data.iterrows():
+            distance_to_k_element = riona.distance_to_k_element(test_instance, learn_data, clazz_name, k=k)
+
+            closest_objects = data.find_elements_by_distance_less_than(learn_data, test_instance, distance_to_k_element,
+                                                                       clazz_name, minimum_values, maximum_values)
+            closest_objects = closest_objects.astype(learn_data.dtypes)
+
+            k_nearest, promising_k_nearest, k_nearest_ids, promising_k_nearest_ids, standard_decision, global_decision = riona.predict(
+                closest_objects, test_instance, clazz_name, grouped_global_data)
+
+            results = results.append(pandas.DataFrame(
+                data={'true_value': [test_instance[clazz_name]], 'subset_prediction': [standard_decision],
+                      'global_decision': [global_decision]}))
+
+        if mode == 'STAND':
+            standard_accuracy = accuracy_score(results['true_value'], results['subset_prediction'])
+
+            file.write(
+                'Confusion matrix in standard  mode, k = {}, accuracy: {:.2f}%\n'.format(k, 100 * standard_accuracy))
+            confusion_matrix_results = confusion_matrix(results['true_value'], results['subset_prediction'])
+            calculate_accuracy(confusion_matrix_results, file)
+
+        if mode == 'NORM':
+            normalized_accuracy = accuracy_score(results['true_value'], results['global_decision'])
+
+            file.write(
+                'Confusion matrix in normalized mode, k = {}, accuracy: {:.2f}%\n'.format(k, 100 * normalized_accuracy))
+            confusion_matrix_results = confusion_matrix(results['true_value'], results['subset_prediction'])
+
+            calculate_accuracy(confusion_matrix_results, file)
+
         iteration = iteration + 1
 
 
@@ -156,7 +191,7 @@ def calculate_accuracy(confusion_matrix_results, statistic_file):
 
     for i in range(0, len(confusion_matrix_results)):
         acc = confusion_matrix_results[i][i] / sum(confusion_matrix_results[i]) * 100
-        statistic_file.write("Accuracy for class {} is equal {:.2f}%\n\n".format(i, acc))
+        statistic_file.write("\nAccuracy for class {} is equal {:.2f}%\n".format(i, acc))
 
         print("Accuracy for class {} is equal {:.2f}%\n".format(i, acc))
 

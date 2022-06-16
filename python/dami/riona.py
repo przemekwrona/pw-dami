@@ -13,19 +13,16 @@ def distance(v1, v2, types, class_name, minimum_values, maximum_values):
         if name == class_name:
             continue
 
-        a = v2[name] - v1[name]
-        d = maximum_values[name] - minimum_values[name]
-
         if types[name] == float:
             a = v2[name] - v1[name]
             d = maximum_values[name] - minimum_values[name]
             s += abs(a / d)
 
         if types[name] == int:
-            if v1[name] - v2[name] == 0:
-                s += 1
-            else:
+            if int(v1[name] - v2[name]) == 0:
                 s += 0
+            else:
+                s += 1
 
     return s
 
@@ -61,8 +58,8 @@ def predict(k_nearest_subset, point, clazz_name, grouped_global_data):
     decision_matrix['subset'] = grouped_consistency_data / grouped_subset_data
     decision_matrix['global'] = grouped_consistency_data / grouped_global_data
 
-    return len(k_nearest_subset), len(consistent_dataset), decision_matrix['subset'].idxmax(), decision_matrix[
-        'global'].idxmax()
+    return len(k_nearest_subset), len(consistent_dataset), k_nearest_subset.index, consistent_dataset.index, \
+           decision_matrix['subset'].idxmax(), decision_matrix['global'].idxmax()
 
 
 def get_rule(v1, v2, dtypes, clazz_name):
@@ -130,7 +127,7 @@ def find_k_optimal(test_data, learn_data, clazz_name, minimum_values, maximum_va
                                                                        minimum_values, maximum_values)
             closest_objects = closest_objects.astype(learn_data.dtypes)
 
-            k_nearest, promising_k_nearest, standard_decision, global_decision = predict(closest_objects, test_instance,
+            k_nearest, promising_k_nearest, k_nearest_ids, k_promising_ids, standard_decision, global_decision = predict(closest_objects, test_instance,
                                                                                          clazz_name,
                                                                                          grouped_global_data)
             results = results.append(pandas.DataFrame(

@@ -12,12 +12,12 @@ from pretty_confusion_matrix import pp_matrix_from_data
 from sklearn.model_selection import KFold
 
 
-def run_experiment(dataset, clazz_name, test_size=0.2, k=1, dataset_name='unknown', mode='not defined',
+def run_experiment(dataset, clazz_name, test_size=0.2, k=1, fold=3, dataset_name='unknown', mode='not defined',
                    draw_plot=False):
     start_time = datetime.datetime.now()
 
     learn_data, test_data = train_test_split(dataset, test_size=test_size)
-    minimum_values, maximum_values = data.find_minimum_and_maximum_values(learn_data)
+    minimum_values, maximum_values = data.find_minimum_and_maximum_values(dataset)
     grouped_global_data = learn_data.groupby(by=[clazz_name]).agg(count=(clazz_name, 'count'))
 
     if k == 'max':
@@ -38,7 +38,9 @@ def run_experiment(dataset, clazz_name, test_size=0.2, k=1, dataset_name='unknow
 
     if draw_plot:
         if len(dataset.columns) - 1 == 2:
+            plot.draw(dataset, clazz_name)
             plot.draw(learn_data, clazz_name)
+            plot.draw(test_data, clazz_name)
         else:
             print("You can not draw 2D chart. Vector contains {} dimensions".format(len(dataset.columns) - 1))
 
@@ -49,17 +51,6 @@ def run_experiment(dataset, clazz_name, test_size=0.2, k=1, dataset_name='unknow
         rows=len(learn_data), k=k,
         dataset=dataset_name)
 
-    # kf = KFold(n_splits=3, shuffle=True)
-    # kf.get_n_splits(dataset)
-
-    # for train_index, test_index in kf.split(dataset):
-    #     print("2")
-    # print("TRAIN:", train_index, "TEST:", test_index)
-    # ...
-    # X_train, X_test = X[train_index], X[test_index]
-    # ...
-    # y_train, y_test = y[train_index], y[test_index]
-
     with open(filename, 'w', encoding='UTF8', newline='') as file:
         writer = csv.writer(file)
 
@@ -67,6 +58,8 @@ def run_experiment(dataset, clazz_name, test_size=0.2, k=1, dataset_name='unknow
         header = numpy.concatenate((header, dataset.columns.to_numpy()))
         header = numpy.concatenate((header, numpy.array(['k+NN_i'])))
         header = numpy.concatenate((header, numpy.array(['promising k+NN_i'])))
+        header = numpy.concatenate((header, numpy.array(['k+NN_i ids'])))
+        header = numpy.concatenate((header, numpy.array(['promising k+NN_i ids'])))
         header = numpy.concatenate((header, numpy.array(['standard d(x)'])))
         header = numpy.concatenate((header, numpy.array(['normalized d(x)'])))
         writer.writerow(header)
@@ -83,15 +76,15 @@ def run_experiment(dataset, clazz_name, test_size=0.2, k=1, dataset_name='unknow
                     plot.draw_closest_point(learn_data, closest_objects, 'gender', test_instance, minimum_values,
                                             maximum_values, k=k)
 
-            k_nearest, promising_k_nearest, standard_decision, global_decision = riona.predict(closest_objects,
-                                                                                               test_instance,
-                                                                                               clazz_name,
-                                                                                               grouped_global_data)
+            k_nearest, promising_k_nearest, k_nearest_ids, promising_k_nearest_ids, standard_decision, global_decision = riona.predict(
+                closest_objects, test_instance, clazz_name, grouped_global_data)
 
             row = numpy.array([index])
             row = numpy.concatenate((row, test_instance.to_numpy()))
             row = numpy.concatenate((row, numpy.array([k_nearest])))
             row = numpy.concatenate((row, numpy.array([promising_k_nearest])))
+            row = numpy.concatenate((row, numpy.array(["{}".format(numpy.array(k_nearest_ids))])))
+            row = numpy.concatenate((row, numpy.array(["{}".format(numpy.array(promising_k_nearest_ids))])))
             row = numpy.concatenate((row, numpy.array([standard_decision])))
             row = numpy.concatenate((row, numpy.array([global_decision])))
             writer.writerow(row)
@@ -119,8 +112,9 @@ def run_experiment(dataset, clazz_name, test_size=0.2, k=1, dataset_name='unknow
             statistic_file.write(
                 'Confusion matrix in standard  mode, k = {}, accuracy: {:.2f}%\n'.format(k, 100 * standard_accuracy))
             statistic_file.write('Program was running for {time} second.\n'.format(time=total_time.seconds))
-            statistic_file.write(
-                numpy.array2string(confusion_matrix(results['true_value'], results['subset_prediction'])))
+            confusion_matrix_results = confusion_matrix(results['true_value'], results['subset_prediction'])
+            calculate_accuracy(confusion_matrix_results, statistic_file)
+            k_fold(dataset, statistic_file, fold=fold)
 
     if mode == 'NORM':
         normalized_accuracy = accuracy_score(results['true_value'], results['global_decision'])
@@ -137,8 +131,34 @@ def run_experiment(dataset, clazz_name, test_size=0.2, k=1, dataset_name='unknow
             statistic_file.write(
                 'Confusion matrix in normalized mode, k = {}, accuracy: {:.2f}%\n'.format(k, 100 * normalized_accuracy))
             statistic_file.write('Program was running for {time} second\n.'.format(time=total_time.seconds))
-            statistic_file.write(
-                numpy.array2string(confusion_matrix(results['true_value'], results['global_decision'])))
+            confusion_matrix_results = confusion_matrix(results['true_value'], results['subset_prediction'])
+
+            calculate_accuracy(confusion_matrix_results, statistic_file)
+            k_fold(dataset, statistic_file, fold=fold)
+
+
+def k_fold(dataset, file, fold):
+    kf = KFold(n_splits=fold, shuffle=True)
+    kf.get_n_splits(dataset)
+
+    iteration = 1
+
+    for train_index, test_index in kf.split(dataset):
+        # file.write("\nKFold iteration: {}".format(iteration))
+        # print("TRAIN:", train_index, "\nTEST:", test_index)
+        # X_train, X_test = X[train_index], X[test_index]
+        # y_train, y_test = y[train_index], y[test_index]
+        iteration = iteration + 1
+
+
+def calculate_accuracy(confusion_matrix_results, statistic_file):
+    statistic_file.write(numpy.array2string(confusion_matrix_results))
+
+    for i in range(0, len(confusion_matrix_results)):
+        acc = confusion_matrix_results[i][i] / sum(confusion_matrix_results[i]) * 100
+        statistic_file.write("Accuracy for class {} is equal {:.2f}%\n\n".format(i, acc))
+
+        print("Accuracy for class {} is equal {:.2f}%\n".format(i, acc))
 
 
 def run_experiment_with_fold(dataset, clazz_name, test_size=0.2, k=1, dataset_name='unknown', mode='not defined',

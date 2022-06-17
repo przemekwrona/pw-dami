@@ -26,7 +26,7 @@ def run_experiment(dataset, clazz_name, test_size=0.2, k=1, fold=3, dataset_name
         print("k max is equal: {}".format(k))
     elif k == 'optimal':
         k_max = math.ceil(math.sqrt(len(learn_data)))
-        k = riona.find_k_optimal(learn_data=learn_data, test_data=test_data, clazz_name=clazz_name,
+        k = riona.find_k_optimal(dataset=dataset, learn_data=learn_data, test_data=test_data, clazz_name=clazz_name,
                                  minimum_values=minimum_values, maximum_values=maximum_values, k_max=k_max,
                                  grouped_global_data=grouped_global_data)
         print("k optimal is equal: {}".format(k))

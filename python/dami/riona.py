@@ -133,12 +133,19 @@ def get_classification_vector(dataset, clazz_name, grouped_global_data, k_max, m
         for r, row in dataset.iterrows():
 
             d = distance_to_k_element(row, dataset, clazz_name, k)
-            k_nearest = data.find_elements_by_distance_less_than(dataset, row, d, clazz_name, minimum_values, maximum_values)
+            k_nearest = data.find_elements_by_distance_less_than(dataset, row, d, clazz_name, minimum_values,
+                                                                 maximum_values)
+
+            consistent_dataset = k_nearest.copy()
+
+            for index, sub_row in k_nearest.iterrows():
+                rule = get_rule(row, sub_row, k_nearest.dtypes, clazz_name)
+                consistent_dataset = remove_inconsistent(rule, consistent_dataset, clazz_name)
 
             is_consistent = True
 
             if is_consistent:
-                v = 1
+                v = row[clazz_name]
                 decision[k][v] = decision[k][v] + 1
                 if decision[k][v] > decision[k][current_decision]:
                     current_decision = v

@@ -79,6 +79,19 @@ def get_rule(v1, v2, dtypes, clazz_name):
     return rule
 
 
+def is_consistent(rule, subset, clazz_name):
+    for i, row in subset.iterrows():
+        for name, column in rule.items():
+            if name == clazz_name:
+                continue
+            if rule[clazz_name][0] == row[clazz_name]:
+                continue
+            if not rule[name][0] <= row[name] <= rule[name][1]:
+                return False
+
+        return True
+
+
 def get_consistent(rule, subset, clazz_name):
     consistent = pandas.DataFrame()
     for index, row in subset.iterrows():
@@ -136,21 +149,17 @@ def get_classification_vector(dataset, clazz_name, grouped_global_data, k_max, m
             k_nearest = data.find_elements_by_distance_less_than(dataset, row, d, clazz_name, minimum_values,
                                                                  maximum_values)
 
-            consistent_dataset = k_nearest.copy()
+            for n, near in k_nearest.iterrows():
+                rule = get_rule(row, near, k_nearest.dtypes, clazz_name)
+                has_consistency = is_consistent(rule, k_nearest, clazz_name)
 
-            for index, sub_row in k_nearest.iterrows():
-                rule = get_rule(row, sub_row, k_nearest.dtypes, clazz_name)
-                consistent_dataset = remove_inconsistent(rule, consistent_dataset, clazz_name)
+                if has_consistency:
+                    v = row[clazz_name]
+                    decision[k][v] = decision[k][v] + 1
+                    if decision[k][v] > decision[k][current_decision]:
+                        current_decision = v
 
-            is_consistent = True
-
-            if is_consistent:
-                v = row[clazz_name]
-                decision[k][v] = decision[k][v] + 1
-                if decision[k][v] > decision[k][current_decision]:
-                    current_decision = v
-
-            A[r][k] = current_decision
+                A[r][k] = current_decision
     return A
 
 

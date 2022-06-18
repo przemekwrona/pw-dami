@@ -79,6 +79,19 @@ def get_rule(v1, v2, dtypes, clazz_name):
     return rule
 
 
+def is_consistent(rule, subset, clazz_name):
+    for i, row in subset.iterrows():
+        for name, column in rule.items():
+            if name == clazz_name:
+                continue
+            if rule[clazz_name][0] == row[clazz_name]:
+                continue
+            if not rule[name][0] <= row[name] <= rule[name][1]:
+                return False
+
+        return True
+
+
 def get_consistent(rule, subset, clazz_name):
     consistent = pandas.DataFrame()
     for index, row in subset.iterrows():
@@ -113,35 +126,86 @@ def remove_inconsistent(rule, consistent_dataset, clazz_name):
     return consistent_dataset
 
 
-def find_k_optimal(test_data, learn_data, clazz_name, minimum_values, maximum_values, grouped_global_data, k_max):
-    accuracy = np.zeros(k_max)
+def get_classification_vector(dataset, clazz_name, grouped_global_data, k_max, minimum_values, maximum_values):
+    A = {}
+    for r, row in dataset.iterrows():
+        A[r] = {}
+        for k in range(1, k_max + 1):
+            A[r][k] = -1
 
-    for k in range(k_max):
-        results = pandas.DataFrame()
+    decision = {}
+    for k in range(1, k_max + 1):
+        decision[k] = {}
+        for r, row in grouped_global_data.iterrows():
+            decision[k][r] = 0
 
-        print("k = {}".format(k))
+    number_of_class = len(grouped_global_data)
+    current_decision = grouped_global_data.idxmax().iloc[0]
 
-        for index, test_instance in test_data.iterrows():
-            d = distance_to_k_element(test_instance, learn_data, clazz_name, k=k)
-            closest_objects = data.find_elements_by_distance_less_than(learn_data, test_instance, d, clazz_name,
-                                                                       minimum_values, maximum_values)
-            closest_objects = closest_objects.astype(learn_data.dtypes)
+    for k in range(1, k_max + 1):
+        for r, row in dataset.iterrows():
 
-            k_nearest, promising_k_nearest, k_nearest_ids, k_promising_ids, standard_decision, global_decision = predict(
-                closest_objects, test_instance,
-                clazz_name,
-                grouped_global_data)
-            results = results.append(pandas.DataFrame(
-                data={'true_value': [test_instance[clazz_name]], 'subset_prediction': [standard_decision],
-                      'global_decision': [global_decision]}))
+            d = distance_to_k_element(row, dataset, clazz_name, k)
+            k_nearest = data.find_elements_by_distance_less_than(dataset, row, d, clazz_name, minimum_values,
+                                                                 maximum_values)
 
-        try:
-            accuracy[k] = accuracy_score(results['true_value'], results['subset_prediction'])
-        except:
-            print("An exception occurred")
+            for n, near in k_nearest.iterrows():
+                rule = get_rule(row, near, k_nearest.dtypes, clazz_name)
+                has_consistency = is_consistent(rule, k_nearest, clazz_name)
 
-        print("Accuracy: {:.2f}".format(accuracy[k]))
+                if has_consistency:
+                    v = row[clazz_name]
+                    decision[k][v] = decision[k][v] + 1
+                    if decision[k][v] > decision[k][current_decision]:
+                        current_decision = v
 
-    accuracy_max = numpy.argmax(accuracy) + 1
+                A[r][k] = current_decision
+    return A
 
-    return accuracy_max
+
+def find_k_optimal(dataset, test_data, learn_data, clazz_name, minimum_values, maximum_values, grouped_global_data,
+                   k_max):
+    k_optimal = -1
+    maximal_set_power = 0
+    A = get_classification_vector(dataset=dataset, clazz_name=clazz_name, grouped_global_data=grouped_global_data,
+                                  k_max=k_max, minimum_values=minimum_values, maximum_values=maximum_values)
+    for k in range(1, k_max + 1):
+        current_set_power = 0
+        for r, row in dataset.iterrows():
+            if A[r][k] == row[clazz_name]:
+                current_set_power += 1
+        if current_set_power > maximal_set_power:
+            maximal_set_power = current_set_power
+            k_optimal = k
+
+    return k_optimal
+
+    # for k in range(k_max):
+    #     results = pandas.DataFrame()
+    #
+    #     print("k = {}".format(k))
+    #
+    #     for index, test_instance in test_data.iterrows():
+    #         d = distance_to_k_element(test_instance, learn_data, clazz_name, k=k)
+    #         closest_objects = data.find_elements_by_distance_less_than(learn_data, test_instance, d, clazz_name,
+    #                                                                    minimum_values, maximum_values)
+    #         closest_objects = closest_objects.astype(learn_data.dtypes)
+    #
+    #         k_nearest, promising_k_nearest, k_nearest_ids, k_promising_ids, standard_decision, global_decision = predict(
+    #             closest_objects, test_instance,
+    #             clazz_name,
+    #             grouped_global_data)
+    #         results = results.append(pandas.DataFrame(
+    #             data={'true_value': [test_instance[clazz_name]], 'subset_prediction': [standard_decision],
+    #                   'global_decision': [global_decision]}))
+    #
+    #     try:
+    #         accuracy[k] = accuracy_score(results['true_value'], results['subset_prediction'])
+    #     except:
+    #         print("An exception occurred")
+    #
+    #     print("Accuracy: {:.2f}".format(accuracy[k]))
+    #
+    # accuracy_max = numpy.argmax(accuracy) + 1
+    #
+    # return accuracy_max
